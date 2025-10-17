@@ -4,17 +4,17 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import stations from "../data/stations.json";
 
-// Fungsi warna marker PM2.5
+// Fungsi warna marker berdasarkan PM2.5
 const getColorByPM25 = (pm25Value) => {
   const value = parseFloat(pm25Value);
-  if (value <= 15.5) return "green";        // Baik
-  if (value <= 55.4) return "yellow";       // Sedang
-  if (value <= 150.4) return "orange";      // Tidak Sehat
-  if (value <= 250.4) return "red";         // Sangat Tidak Sehat
-  return "black";                           // Berbahaya
+  if (value <= 15.5) return "green"; // Baik
+  if (value <= 55.4) return "yellow"; // Sedang
+  if (value <= 150.4) return "orange"; // Tidak Sehat
+  if (value <= 250.4) return "red"; // Sangat Tidak Sehat
+  return "black"; // Berbahaya
 };
 
-// Buat marker warna
+// Ikon marker berwarna
 const createColoredIcon = (color) =>
   new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
@@ -26,7 +26,7 @@ const createColoredIcon = (color) =>
     shadowSize: [41, 41],
   });
 
-// Ikon lokasi pengguna (biru)
+// Ikon lokasi pengguna
 const userIcon = L.divIcon({
   className: "user-location",
   html: `
@@ -43,7 +43,7 @@ const userIcon = L.divIcon({
   iconAnchor: [7.5, 7.5],
 });
 
-// Komponen Legend
+// Komponen legenda
 const Legend = () => {
   const map = useMap();
 
@@ -53,14 +53,8 @@ const Legend = () => {
     legend.onAdd = () => {
       const div = L.DomUtil.create(
         "div",
-        "info legend bg-white p-2 rounded shadow-md text-sm"
+        "info legend bg-white p-2 rounded-md shadow-md text-xs sm:text-sm"
       );
-
-      // Responsif untuk HP
-      div.style.maxWidth = "160px";
-      div.style.fontSize = "12px";
-      div.style.overflow = "auto";
-
       div.innerHTML = `
         <h4 style="margin-bottom:4px;">Kategori Udara (PM2.5)</h4>
         <div><i style="background:green;width:12px;height:12px;display:inline-block;margin-right:6px;"></i>Baik (0–15.5 µg/m³)</div>
@@ -80,7 +74,27 @@ const Legend = () => {
   return null;
 };
 
-// Komponen untuk melacak lokasi pengguna
+// Tombol Temukan Saya
+const LocateButton = ({ map, userPosition }) => {
+  const handleClick = () => {
+    if (userPosition) {
+      map.setView(userPosition, 13);
+    } else {
+      alert("Lokasi belum terdeteksi!");
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className="absolute top-24 right-4 z-[1000] bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg hover:bg-blue-700 text-sm"
+    >
+      🎯 Temukan Saya
+    </button>
+  );
+};
+
+// Komponen lokasi pengguna
 function UserLocationMarker({ setUserPosition }) {
   const map = useMap();
 
@@ -90,7 +104,6 @@ function UserLocationMarker({ setUserPosition }) {
       return;
     }
 
-    // posisi awal
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -101,18 +114,6 @@ function UserLocationMarker({ setUserPosition }) {
         alert("Lokasi belum terdeteksi!");
       }
     );
-
-    // realtime update
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserPosition([latitude, longitude]);
-      },
-      (err) => console.error("Gagal update lokasi:", err),
-      { enableHighAccuracy: true, maximumAge: 0 }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
   }, [map, setUserPosition]);
 
   return null;
@@ -122,39 +123,28 @@ function UserLocationMarker({ setUserPosition }) {
 const MapView = () => {
   const [data, setData] = useState([]);
   const [userPosition, setUserPosition] = useState(null);
+  const [map, setMap] = useState(null);
 
   useEffect(() => {
     setData(stations);
   }, []);
 
-  // Fungsi tombol Temukan Saya
-  const handleFindMe = () => {
-    if (!navigator.geolocation) {
-      alert("Browser tidak mendukung geolokasi.");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserPosition([latitude, longitude]);
-      },
-      () => alert("Tidak dapat menemukan lokasi.")
-    );
-  };
-
   return (
-    <div className="relative w-full h-[90vh] rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+    <div className="w-full h-[90vh] rounded-2xl overflow-hidden shadow-lg border border-gray-200 relative">
+      <div className="text-center text-blue-700 font-bold text-lg sm:text-2xl py-2 bg-blue-50">
+        AirZone - Peta Kualitas Udara Regional
+      </div>
       <MapContainer
         center={[-6.9, 107.6]}
         zoom={9}
-        style={{ height: "100%", width: "100%" }}
+        whenCreated={setMap}
+        style={{ height: "calc(100% - 40px)", width: "100%" }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
 
-        {/* lokasi pengguna */}
         <UserLocationMarker setUserPosition={setUserPosition} />
         {userPosition && (
           <Marker position={userPosition} icon={userIcon}>
@@ -162,7 +152,6 @@ const MapView = () => {
           </Marker>
         )}
 
-        {/* marker kualitas udara */}
         {data.map((station) => {
           const color = getColorByPM25(station.pm25);
           return (
@@ -207,15 +196,8 @@ const MapView = () => {
         })}
 
         <Legend />
+        {map && <LocateButton map={map} userPosition={userPosition} />}
       </MapContainer>
-
-      {/* Tombol Temukan Saya */}
-      <button
-        onClick={handleFindMe}
-        className="absolute z-[1000] bottom-4 right-4 bg-blue-600 text-white px-3 py-2 rounded-full shadow-md hover:bg-blue-700 text-sm md:text-base"
-      >
-        🎯 Temukan Saya
-      </button>
     </div>
   );
 };

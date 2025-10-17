@@ -4,7 +4,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import stations from "../data/stations.json";
 
-// 🎨 fungsi warna marker PM2.5
+// 🎨 Warna marker berdasarkan nilai PM2.5
 const getColorByPM25 = (pm25Value) => {
   const value = parseFloat(pm25Value);
   if (value <= 15.5) return "green";       // Baik
@@ -14,7 +14,7 @@ const getColorByPM25 = (pm25Value) => {
   return "black";                          // Berbahaya
 };
 
-// 📍 buat marker warna
+// 📍 Buat marker warna
 const createColoredIcon = (color) =>
   new L.Icon({
     iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
@@ -26,7 +26,7 @@ const createColoredIcon = (color) =>
     shadowSize: [41, 41],
   });
 
-// 🔵 ikon lokasi pengguna
+// 🔵 Ikon lokasi pengguna
 const userIcon = L.divIcon({
   className: "user-location",
   html: `
@@ -71,7 +71,7 @@ const Legend = () => {
   return null;
 };
 
-// 🎯 tombol "Temukan Saya"
+// 🎯 Tombol "Temukan Saya"
 function LocateButton({ userPosition }) {
   const map = useMap();
 
@@ -101,16 +101,12 @@ function LocateButton({ userPosition }) {
           transition: transform 0.2s;
         ">🎯</button>
       `;
-
-      // aktifkan klik pada leaflet
       L.DomEvent.disableClickPropagation(div);
       L.DomEvent.on(div, "click", handleClick);
-
       return div;
     };
 
     button.addTo(map);
-
     return () => {
       map.removeControl(button);
     };
@@ -148,11 +144,12 @@ const MapView = () => {
   }, []);
 
   return (
-    <div className="w-full h-[90vh] rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+    <div className="w-full h-[calc(100vh-0px)] overflow-hidden md:h-screen">
       <MapContainer
         center={[-6.9, 107.6]}
         zoom={9}
         style={{ height: "100%", width: "100%" }}
+        className="z-0"
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -166,7 +163,7 @@ const MapView = () => {
           </Marker>
         )}
 
-        {/* marker kualitas udara */}
+        {/* marker stasiun */}
         {data.map((station) => {
           const color = getColorByPM25(station.pm25);
           return (

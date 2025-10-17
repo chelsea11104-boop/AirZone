@@ -86,8 +86,8 @@ const LocateButton = ({ map, userPosition }) => {
 
   return (
     <button
-      onClick={handleClick}
-      className="absolute top-24 right-4 z-[1000] bg-blue-600 text-white px-3 py-2 rounded-full shadow-lg hover:bg-blue-700 text-sm"
+      onClick={handleLocate}
+      className="fixed bottom-5 right-5 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-700 transition z-[1000]"
     >
       🎯 Temukan Saya
     </button>

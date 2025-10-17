@@ -179,9 +179,10 @@ const MapView = () => {
                 <div className="text-sm font-medium">
                   <p><strong>Nama Lokasi:</strong> {station.nama_lokasi}</p>
                   <p><strong>Kabupaten:</strong> {station.kabupaten}</p>
-                  <p><strong>PM2.5:</strong> {station.pm25} µg/m³</p>
-                  <p><strong>PM10:</strong> {station.pm10} µg/m³</p>
-                  <p><strong>O₃:</strong> {station.o3} µg/m³</p>
+                  <p><strong>PM2.5:</strong> {station.pm25}</p>
+                  <p><strong>PM10:</strong> {station.pm10}</p>
+                  <p><strong>O₃:</strong> {station.o3}</p>
+
                   <p><strong>Kategori:</strong> {
                     color === "green" ? "Baik" :
                     color === "yellow" ? "Sedang" :
